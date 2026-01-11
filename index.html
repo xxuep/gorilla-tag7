@@ -1,25 +1,38 @@
 <html lang="en-us"><head>
-    <base href="https://cdn.jsdelivr.net/gh/xxuep/gorilla-tag6@main/">
+    <base href="https://cdn.jsdelivr.net/gh/gorilla-tag/gorilla-tag6@main/">
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | gorilla tag web</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-  <style type="text/css" id="operaUserStyle"></style></head>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #231F20;
+        }
+
+        #unity-container {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+    </style>
+  </head>
   <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width="960" height="600" tabindex="-1" style="width: 960px; height: 600px;"></canvas>
-      <div id="unity-loading-bar" style="display: block;">
+	<div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;">LOADING... 12.65 MB / 175.89 MB</div>
+    <div id="unity-container" class="unity-desktop" hidden="">
+      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full" style="width: 29.3378%;"></div>
+          <div id="unity-progress-bar-full"></div>
         </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">gorilla tag web</div>
       </div>
     </div>
     <script>
@@ -116,7 +129,6 @@
 
       document.body.appendChild(script);
 
-    </script><script src="Build/gtagwebR2.loader.js"></script>
+    </script>
   
-
-<script src="blob:https://gtagwebstorage.boolonx.com/c2c7f411-4471-42ba-8863-c3dbe267f3df"></script></body></html>
+</body></html>
