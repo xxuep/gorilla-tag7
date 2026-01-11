@@ -77,7 +77,7 @@
     loadingBar.style.display = "block";
 
     var script = document.createElement("script");
-    script.src = buildUrl + "/gtagwebR2.loader.js";
+    script.src = "https://raw.githubusercontent.com/xxuep/gorilla-tag/main/Build/gtagwebR2.loader.js";
     script.onload = () => {
       createUnityInstance(canvas, config, (progress) => {
         progressBarFull.style.width = (progress * 100) + "%";
