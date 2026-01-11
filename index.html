@@ -1,147 +1,121 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
+<html lang="en-us"><head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | gorilla tag web</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            background: #231F20;
-        }
-
-        #unity-container {
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-    </style>
   </head>
   <body>
-	<div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;"> LOADING... </div>
-    <div id="unity-container" class="unity-desktop" hidden>
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width="960" height="600" tabindex="-1" style="width: 960px; height: 600px;"></canvas>
+      <div id="unity-loading-bar" style="display: block;">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
+          <div id="unity-progress-bar-full" style="width: 55.72%;"></div>
         </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">gorilla tag web</div>
       </div>
     </div>
     <script>
-        var loadingText = document.querySelector("#loading-text");
-        let totalBytes = 0;
-        let loadedBytes = 0;
 
-        async function fetchWithProgress(url) {
-            const response = await fetch(url);
-            const reader = response.body.getReader();
-            let chunks = [];
-            let received = 0;
-            while (true) {
-                const {
-                    done,
-                    value
-                } = await reader.read();
-                if (done) break;
-                received += value.length;
-                loadedBytes += value.length;
-                chunks.push(value);
-                let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-                let mbTotal = '175.89';
-                loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
-            }
-            let fullBuffer = new Uint8Array(received);
-            let offset = 0;
-            for (let chunk of chunks) {
-                fullBuffer.set(chunk, offset);
-                offset += chunk.length;
-            }
-            return fullBuffer.buffer;
-        }
-        async function mergeFiles(fileParts, cacheKey) {
-            const buffers = await Promise.all(
-                fileParts.map(part => fetchWithProgress(part))
-            );
-            const mergedBlob = new Blob(buffers);
-            return URL.createObjectURL(mergedBlob);
-        }
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
 
-        function getParts(file, start, end) {
-            let parts = [];
-            for (let i = start; i <= end; i++) {
-                parts.push(file + ".part" + i);
-            }
-            return parts;
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
         }
-        (async () => {
-            const [dataUrl, wasmurl] = await Promise.all([
-                mergeFiles(getParts("Build/gtag.data.gz", 1, 7), "gtag.data.gz"),
-                mergeFiles(getParts("Build/gtag.wasm.gz", 1, 2), "gtag.wasm.gz"),
-            ]);
-            var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/gtag.loader.js";
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/gtagwebR2.loader.js";
       var config = {
-        dataUrl: dataUrl,
-        frameworkUrl: buildUrl + "/gtag.framework.js.gz",
-        codeUrl: wasmurl,
+        dataUrl: buildUrl + "/gtagwebR2.data.unityweb",
+        frameworkUrl: buildUrl + "/gtagwebR2.framework.js.unityweb",
+        codeUrl: buildUrl + "/gtagwebR2.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "boolonx",
         productName: "gorilla tag web",
         productVersion: "1.0",
+        showBanner: unityShowBanner,
       };
-            var container = document.querySelector("#unity-container");
-            container.hidden = false;
-            var canvas = document.querySelector("#unity-canvas");
-            var loadingBar = document.querySelector("#unity-loading-bar");
-            var progressBarFull = document.querySelector("#unity-progress-bar-full");
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                container.className = "unity-mobile";
-                config.devicePixelRatio = 1;
-            } else {
-                if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                    var meta = document.createElement('meta');
-                    meta.name = 'viewport';
-                    meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-                    document.getElementsByTagName('head')[0].appendChild(meta);
-                    container.className = "unity-mobile";
-                    canvas.className = "unity-mobile";
-                } else {
-                    function resizeCanvas() {
-                        canvas.width = window.innerWidth;
-                        canvas.height = window.innerHeight;
-                        canvas.style.width = window.innerWidth + "px";
-                        canvas.style.height = window.innerHeight + "px";
-                    }
-                    resizeCanvas();
-                    window.addEventListener('resize', resizeCanvas);
-                }
-            }
-            loadingBar.style.display = "block";
-            var script = document.createElement("script");
-            script.src = loaderUrl;
-            script.onload = () => {
-                createUnityInstance(canvas, config, (progress) => {
-                    progressBarFull.style.width = 100 * progress + "%";
-                }).then((unityInstance) => {
-                    loadingText.remove();
-                    loadingBar.style.display = "none";
-                    canvas.style.display = "block";
-                }).catch(async (message) => {
-                    alert(message);
-                });
 
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+
+      loadingBar.style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                loadingBar.style.display = "none";
+                fullscreenButton.onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+              }).catch((message) => {
+                alert(message);
+              });
             };
-            document.body.appendChild(script);
-        })();
-    </script>
-  </body>
-</html>
+
+      document.body.appendChild(script);
+
+    </script><script src="Build/gtagwebR2.loader.js"></script>
+  
+
+<script src="blob:https://gtagwebstorage.boolonx.com/23b1a483-dd33-4406-b6b9-aa59ddf1e1ee"></script></body></html>
